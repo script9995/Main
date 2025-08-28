@@ -1,24 +1,25 @@
 -- Chỉ chạy nếu đúng placeId
-if game.PlaceId ~= 72829404259339 then
-    warn("[LOOP SCRIPT] PlaceId không đúng, script dừng lại!")
-    return
-end
-
--- Script để loop gọi RemoteEvent
+-- Script để loop gọi RemoteEvent với kiểm tra PlaceId
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
 local LocalPlayer = Players.LocalPlayer
-local REMOTE_NAME = "Event" -- Tên RemoteEvent từ log
-local ARGUMENT = "Swarm Event" -- Argument từ log
-local DELAY = 1 -- Thời gian chờ giữa các lần gọi (giây), chỉnh nếu cần
-local LOOP_ENABLED = true -- Bật/tắt loop (true = chạy, false = dừng)
+local TARGET_PLACE_ID = 72829404259339 -- PlaceId cần kiểm tra
+local REMOTE_NAME = "Event" -- Tên RemoteEvent
+local ARGUMENT = "Swarm Event" -- Argument
+local DELAY = 1 -- Thời gian chờ giữa các lần gọi (giây)
+local LOOP_ENABLED = true -- Bật/tắt loop
+
+-- Kiểm tra PlaceId
+if game.PlaceId ~= TARGET_PLACE_ID then
+    warn(string.format("[LOOP SCRIPT] Wrong PlaceId! Expected: %s, Current: %s", TARGET_PLACE_ID, game.PlaceId))
+    return -- Dừng script nếu PlaceId không khớp
+end
 
 -- Tìm RemoteEvent
 local function findRemote()
     local remote = ReplicatedStorage:FindFirstChild(REMOTE_NAME)
     if not remote then
-        -- Nếu không tìm thấy trong ReplicatedStorage, tìm toàn game
         for _, obj in pairs(game:GetDescendants()) do
             if obj:IsA("RemoteEvent") and obj.Name == REMOTE_NAME then
                 remote = obj
@@ -42,21 +43,15 @@ local function fireRemote()
 end
 
 -- Loop gọi remote
-print("[LOOP SCRIPT] Starting loop for Remote: " .. REMOTE_NAME)
+print("[LOOP SCRIPT] Starting loop for Remote: " .. REMOTE_NAME .. " in PlaceId: " .. game.PlaceId)
 while LOOP_ENABLED do
     local success, err = pcall(fireRemote)
     if not success then
         warn("[ERROR] Failed to fire remote: " .. tostring(err))
     end
-    task.wait(DELAY) -- Chờ trước khi gọi lần tiếp theo
+    task.wait(DELAY)
 end
 
--- Thông báo script chạy
-print("[LOOP SCRIPT] Loop started for user: " .. LocalPlayer.Name)
-
---[[
-	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
-]]
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
